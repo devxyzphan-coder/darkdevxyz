@@ -1,0 +1,224 @@
+-- [[ DarkDevXyz UI v10.2 - CLASSIC REVIVAL ]]
+local Success, Error = pcall(function()
+    local Players = game:GetService("Players")
+    local CoreGui = game:GetService("CoreGui")
+    local HttpService = game:GetService("HttpService")
+    local UIS = game:GetService("UserInputService")
+    local LocalPlayer = Players.LocalPlayer
+
+    -- CONFIG
+    local WEBHOOK_URL = "https://discord.com/api/webhooks/1500136732874510499/usvJ41Y7KY2CCU0uYmj3_yKcjVmpTHAanDX4UTZMpm-YccRhCUix8o9ObByGGresmtlm"
+    local NEON_COLOR = Color3.fromRGB(0, 255, 150)
+    local isCompiler = false 
+
+    -- Cleanup
+    if CoreGui:FindFirstChild("DarkDevXyz_V10") then CoreGui.DarkDevXyz_V10:Destroy() end
+
+    local Screen = Instance.new("ScreenGui", CoreGui)
+    Screen.Name = "DarkDevXyz_V10"
+    Screen.IgnoreGuiInset = true
+
+    -- Main Frame (Classic Style)
+    local Main = Instance.new("Frame", Screen)
+    Main.BackgroundColor3 = Color3.fromRGB(12, 12, 15)
+    Main.Size = UDim2.new(0, 500, 0, 550)
+    Main.Position = UDim2.new(0.5, -250, 0.5, -275)
+    Main.BorderSizePixel = 0
+    Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 8)
+    
+    local Stroke = Instance.new("UIStroke", Main)
+    Stroke.Color = NEON_COLOR
+    Stroke.Thickness = 2
+    Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+    -- Header Title
+    local Title = Instance.new("TextLabel", Main)
+    Title.Text = "  DARKDEV XYZ V10 - STABLE"
+    Title.Size = UDim2.new(1, 0, 0, 45)
+    Title.TextColor3 = NEON_COLOR
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 18
+    Title.BackgroundTransparency = 1
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+
+    -- Scroll Container
+    local Scroll = Instance.new("ScrollingFrame", Main)
+    Scroll.Size = UDim2.new(1, -20, 0, 350)
+    Scroll.Position = UDim2.new(0, 10, 0, 50)
+    Scroll.BackgroundTransparency = 1
+    Scroll.ScrollBarThickness = 2
+    Scroll.ScrollBarImageColor3 = NEON_COLOR
+    
+    local Layout = Instance.new("UIListLayout", Scroll)
+    Layout.Padding = UDim.new(0, 6)
+
+    -- [NEW] Console Log (Phần dưới cùng)
+    local ConsoleFrame = Instance.new("ScrollingFrame", Main)
+    ConsoleFrame.Size = UDim2.new(1, -20, 0, 120)
+    ConsoleFrame.Position = UDim2.new(0, 10, 1, -130)
+    ConsoleFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 10)
+    ConsoleFrame.BorderSizePixel = 0
+    ConsoleFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    ConsoleFrame.ScrollBarThickness = 2
+    Instance.new("UICorner", ConsoleFrame)
+    
+    local ConsoleLayout = Instance.new("UIListLayout", ConsoleFrame)
+    ConsoleLayout.Padding = UDim.new(0, 2)
+
+    local function logToConsole(msg, color)
+        local l = Instance.new("TextLabel", ConsoleFrame)
+        l.Size = UDim2.new(1, -10, 0, 18)
+        l.BackgroundTransparency = 1
+        l.Text = " [>] " .. msg
+        l.TextColor3 = color or Color3.fromRGB(180, 180, 180)
+        l.Font = Enum.Font.Code
+        l.TextSize = 11
+        l.TextXAlignment = Enum.TextXAlignment.Left
+        ConsoleFrame.CanvasSize = UDim2.new(0, 0, 0, ConsoleLayout.AbsoluteContentSize.Y)
+        ConsoleFrame.CanvasPosition = Vector2.new(0, ConsoleFrame.CanvasSize.Y.Offset)
+    end
+
+    -- Advanced Webhook Logger
+    local function sendWebhook(title, description)
+        if WEBHOOK_URL == "" or WEBHOOK_URL:find("YOUR_DISCORD") then return end
+        local req = (syn and syn.request) or (http and http.request) or http_request or request
+        if req then
+            pcall(function()
+                req({
+                    Url = WEBHOOK_URL,
+                    Method = "POST",
+                    Headers = {["Content-Type"] = "application/json"},
+                    Body = HttpService:JSONEncode({
+                        embeds = {{
+                            title = "🛠️ DarkDevXyz Logs: " .. title,
+                            description = description,
+                            color = 65280,
+                            fields = {
+                                {name = "Executor", value = (identifyexecutor and identifyexecutor()) or "Unknown", inline = true},
+                                {name = "Game", value = game.Name, inline = true}
+                            },
+                            footer = {text = "Execution Time: " .. os.date("%X")}
+                        }}
+                    })
+                })
+            end)
+        end
+    end
+
+    -- Draggable (Fixed)
+    local dragging, dragStart, startPos
+    Main.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true; dragStart = input.Position; startPos = Main.Position
+        end
+    end)
+    UIS.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    UIS.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end end)
+
+    -- Button Creator
+    local function addBtn(text, color, func)
+        local b = Instance.new("TextButton", Scroll)
+        b.Size = UDim2.new(1, 0, 0, 40)
+        b.BackgroundColor3 = color
+        b.Text = text
+        b.TextColor3 = Color3.new(1, 1, 1)
+        b.Font = Enum.Font.GothamSemibold
+        b.TextSize = 13
+        b.AutoButtonColor = true
+        Instance.new("UICorner", b)
+        
+        b.MouseButton1Click:Connect(function()
+            func(b)
+        end)
+    end
+
+    -- --- 10 CHỨC NĂNG ---
+
+    -- 1. Compiler (FIXED)
+    addBtn("COMPILER: OFF", Color3.fromRGB(150, 50, 50), function(obj)
+        isCompiler = not isCompiler
+        if isCompiler then
+            obj.Text = "COMPILER: ON"
+            obj.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
+            logToConsole("Mode: Decompile Enabled", Color3.new(0, 1, 0.5))
+        else
+            obj.Text = "COMPILER: OFF"
+            obj.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+            logToConsole("Mode: Scripts Disabled", Color3.new(1, 0.3, 0.3))
+        end
+    end)
+
+    -- 2. Save Game
+    addBtn("🚀 SAVE FULL GAME (.RBXL)", Color3.fromRGB(0, 100, 200), function()
+        logToConsole("Initiating SaveInstance...", NEON_COLOR)
+        sendWebhook("Save Activity", "User started map saving.")
+        saveinstance({decompile = isCompiler, noscripts = not isCompiler, mode = "optimized"})
+        logToConsole("Success: Check workspace folder.", NEON_COLOR)
+    end)
+
+    -- 3. Scan Assets
+    addBtn("💎 SCAN ALL ASSETS", Color3.fromRGB(60, 60, 60), function()
+        local c = 0
+        for _, v in pairs(game:GetDescendants()) do if v:IsA("MeshPart") or v:IsA("Texture") then c = c + 1 end end
+        logToConsole("Scanner: Found " .. c .. " assets.")
+    end)
+
+    -- 4. Dark Dex
+    addBtn("📂 LOAD DARK DEX", Color3.fromRGB(40, 40, 45), function()
+        logToConsole("Loading Dex Explorer...")
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))()
+    end)
+
+    -- 5. SimpleSpy
+    addBtn("🕵️ LOAD REMOTE SPY", Color3.fromRGB(40, 40, 45), function()
+        logToConsole("Loading SimpleSpy V3...")
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/74n0v/SimpleSpyV3/main/main.lua"))()
+    end)
+
+    -- 6. Anti AFK
+    addBtn("🛡️ ENABLE ANTI-AFK", Color3.fromRGB(80, 0, 150), function()
+        logToConsole("Anti-AFK is now active.")
+        LocalPlayer.Idled:Connect(function()
+            game:GetService("VirtualUser"):CaptureController()
+            game:GetService("VirtualUser"):ClickButton2(Vector2.new())
+        end)
+    end)
+
+    -- 7. Performance Boost
+    addBtn("⚡ FPS BOOSTER", Color3.fromRGB(0, 150, 100), function()
+        logToConsole("Cleaning world textures...")
+        for _, v in pairs(game:GetDescendants()) do
+            if v:IsA("Texture") or v:IsA("Decal") then v:Destroy() end
+        end
+    end)
+
+    -- 8. Full Bright
+    addBtn("☀️ FULL BRIGHT", Color3.fromRGB(200, 200, 200), function()
+        logToConsole("Lighting set to Max.")
+        local L = game:GetService("Lighting")
+        L.Brightness = 2; L.ClockTime = 14; L.GlobalShadows = false
+    end)
+
+    -- 9. Rejoin
+    addBtn("🔄 REJOIN SERVER", Color3.fromRGB(200, 100, 0), function()
+        logToConsole("Teleporting to same place...")
+        game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer)
+    end)
+
+    -- 10. Webhook Test
+    addBtn("📡 TEST WEBHOOK", Color3.fromRGB(88, 101, 242), function()
+        logToConsole("Testing Discord connection...")
+        sendWebhook("Test", "Webhook connection verified!")
+    end)
+
+    Scroll.CanvasSize = UDim2.new(0,0,0, Layout.AbsoluteContentSize.Y + 10)
+    logToConsole("DarkDevXyz System Loaded.", NEON_COLOR)
+    sendWebhook("System", "Script loaded successfully.")
+end)
+
+if not Success then warn("System Error: " .. Error) end
